@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-primary">💰 Danh sách Hũ Chi Tiêu</h2>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'create_jar' %}" class="btn btn-success">
+            + Tạo Hũ Mới
+        </a>
+    </div>
+
+    <!-- Hũ của bạn -->
+    <div class="card mb-4 border-success shadow">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">📦 Hũ của bạn</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for jar in owned_jars %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="text-success">{{ jar.name }}</strong>
+                </div>
+                <div class="text-end">
+                    <span class="text-warning fw-bold">Còn lại: {{ jar.remaining_budget }}</span>
+                    <a href="{% url 'jar_detail' jar.id %}" class="btn btn-sm btn-outline-info ms-3">🔍 Xem</a>
+                </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-muted">Bạn chưa tạo hũ nào.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Hũ được chia sẻ -->
+    <div class="card border-info shadow">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">🤝 Hũ được chia sẻ với bạn</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for jar in shared_jars %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="text-info">{{ jar.name }}</strong>
+                </div>
+                <div class="text-end">
+                    <span class="text-warning fw-bold">Còn lại: {{ jar.remaining_budget }}</span>
+                    <a href="{% url 'jar_detail' jar.id %}" class="btn btn-sm btn-outline-info ms-3">🔍 Xem</a>
+                </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-muted">Không có hũ nào được chia sẻ với bạn.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Chia sẻ hũ chi tiêu: {{ jar.name }}</h2>
+    <p>Chủ sở hữu: {{ jar.owner.username }}</p>
+    <p>Ngân sách: {{ jar.total_budget }} VNĐ</p>
+    <p>Đã chi: {{ jar.current_spent }} VNĐ</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">Nhập tên người dùng để chia sẻ:</label>
+        <input type="text" id="username" name="username" class="form-control" required>
+        <button type="submit" class="btn btn-primary mt-2">Chia sẻ</button>
+    </form>
+
+    {% if message %}
+    <div class="alert alert-info mt-3">{{ message }}</div>
+    {% endif %}
+
+    <h4 class="mt-4">Thành viên hiện tại:</h4>
+    <ul>
+        {% for member in jar.members.all %}
+        <li>{{ member.username }}</li>
+        {% empty %}
+        <li>Chưa có ai được chia sẻ.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'jar_detail' jar.id %}" class="btn btn-secondary mt-3">Quay lại hũ</a>
+</div>
+{% endblock %}

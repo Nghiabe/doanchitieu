@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Chỉnh sửa Hũ Chi Tiêu</h2>
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group mb-3">
+      <label for="jar_name" class="form-label">Tên Hũ</label>
+      <input type="text" id="jar_name" name="jar_name" class="form-control" value="{{ jar.name }}" required>
+    </div>
+
+    <div class="form-group mb-3">
+      <label for="total_budget" class="form-label">Ngân sách (VNĐ)</label>
+      <input type="number" step="0.01" id="total_budget" name="total_budget" class="form-control" value="{{ jar.total_budget }}" required>
+    </div>
+
+    <div class="form-group mb-3">
+      <label for="description" class="form-label">Mô tả</label>
+      <textarea id="description" name="description" class="form-control" rows="3">{{ jar.description }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+    <a href="{% url 'jar_detail' jar.id %}" class="btn btn-secondary">Huỷ</a>
+  </form>
+</div>
+{% endblock %}

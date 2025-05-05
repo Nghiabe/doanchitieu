@@ -3,64 +3,63 @@
 {% load static %}
 
 {% block content %}
-
-<div class="container mt-4">
+<div class="container mt-6 px-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="{% url 'expenses'%}">Chi tiêu</a>
+                <a href="{% url 'expenses'%}" class="text-blue-500 hover:text-blue-700">Chi tiêu</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">Thêm Chi tiêu</li>
         </ol>
     </nav>
 
-    <div class="card">
+    <div class="card shadow-lg rounded-lg mt-6 p-6 bg-white">
         <div class="card-body">
             <form action="{% url 'add-expenses' %}" method="post" id="expense-form">
                 {% include 'partials/_messages.html'%}
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="">Số tiền</label>
-                    <input type="number" class="form-control form-control-sm" name="amount" value="{{values.amount}}" />
+                
+                <div class="form-group mb-4">
+                    <label for="amount" class="block text-sm font-semibold text-gray-700">Số tiền</label>
+                    <input type="number" class="form-control form-control-sm mt-2 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 w-full" name="amount" value="{{values.amount}}" placeholder="Nhập số tiền chi tiêu" />
                 </div>
-                <div class="form-group">
-                    <label for="">Mô tả</label>
-                    <input type="text" class="form-control form-control-sm" name="description" id="description-input"
-                        value="{{values.description}}" />
+                
+                <div class="form-group mb-4">
+                    <label for="description" class="block text-sm font-semibold text-gray-700">Mô tả</label>
+                    <input type="text" class="form-control form-control-sm mt-2 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 w-full" name="description" id="description-input" value="{{values.description}}" placeholder="Mô tả chi tiêu" />
 
                     <!-- Loading indicator -->
-                    <div id="loading-indicator" style="display: none;">
+                    <div id="loading-indicator" class="mt-2" style="display: none;">
                         <img class="loader" src="{% static 'img/loader.gif' %}" alt="Đang tải..." width="25">
                     </div>
-
-                    <!-- Predicted category display -->
-                    <!-- <div id="predicted-category" style="margin-top: 5px;"></div> -->
                 </div>
-                <!-- <div class="form-group">
-                    <label for="">Danh mục</label>
-                    <select class="form-control" name="category" id="category-select">
-                        {% for category in categories%}
-                        <option name="category" value="{{category.name}}">{{category.name}}</option>
+
+                <input type="hidden" name="initial_predicted_category" id="initial-predicted-category" value="{{predicted_category}}">
+
+                <div class="form-group mb-4">
+                    <label for="category" class="block text-sm font-semibold text-gray-700">Danh mục</label>
+                    <input type="text" class="form-control form-control-sm mt-2 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 w-full" name="category" id="category-input" value="{{values.category}}" placeholder="Chọn danh mục chi tiêu" />
+                </div>
+
+                <!-- Mục chọn hũ chi tiêu -->
+                <div class="form-group mb-4">
+                    <label for="jar" class="block text-sm font-semibold text-gray-700">Chọn Hũ Chi Tiêu</label>
+                    <select class="form-control mt-2 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 w-full" name="jar" id="jar-select">
+                        <option value="">Chọn hũ chi tiêu</option>
+                        {% for jar in jars %}
+                            <option value="{{ jar.id }}" class="text-gray-800">{{ jar.name }} - Ngân sách: {{ jar.total_budget }} VNĐ</option>
                         {% endfor %}
                     </select>
-                </div> -->
-                <input type="hidden" name="initial_predicted_category" id="initial-predicted-category"
-                    value="{{predicted_category}}">
-
-
-                <div class="form-group">
-                    <label for="">Danh mục</label>
-                    <input type="text" class="form-control" name="category" id="category-input"
-                        value="{{values.category}}" />
                 </div>
 
-
-                <div class="form-group">
-                    <label for="">Ngày chi tiêu</label>
-                    <input type="date" class="form-control form-control-sm" name="expense_date" />
+                <div class="form-group mb-4">
+                    <label for="expense_date" class="block text-sm font-semibold text-gray-700">Ngày chi tiêu</label>
+                    <input type="date" class="form-control form-control-sm mt-2 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 w-full" name="expense_date" />
                 </div>
 
-                <input type="submit" id="btn" value="Gửi" class="btn btn-primary btn-primary-sm" />
+                <div class="form-group mb-4">
+                    <input type="submit" id="btn" value="Gửi" class="btn btn-primary bg-green-600 text-white p-3 rounded-lg w-full cursor-pointer hover:bg-green-700 transition duration-300" />
+                </div>
             </form>
         </div>
     </div>
@@ -69,59 +68,54 @@
 
 <!-- Add JavaScript to make category predictions -->
 {% block js %}
-
 <script>
 // Function to predict category based on description
 function predictCategory() {
-const description = document.getElementById('description-input').value;
-if (description) {
-// Display the loading indicator
-document.getElementById('loading-indicator').style.display = 'inline';
+    const description = document.getElementById('description-input').value;
+    if (description) {
+        // Display the loading indicator
+        document.getElementById('loading-indicator').style.display = 'inline';
 
-// Send a request to your server to predict the category
-const formData = new FormData();
-formData.append('description', description);
-fetch('{% url "predict-category" %}', {
-method: 'POST',
-body: formData,
-headers: {
-'X-CSRFToken': getCookie('csrftoken')
-},
-})
-.then(response => response.json())
-.then(data => {
-// Hide the loading indicator
-document.getElementById('loading-indicator').style.display = 'none';
+        // Send a request to your server to predict the category
+        const formData = new FormData();
+        formData.append('description', description);
+        fetch('{% url "predict-category" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide the loading indicator
+            document.getElementById('loading-indicator').style.display = 'none';
 
-// Update the category select input with the predicted category
-const categorySelect = document.getElementById('category-input');
-setTimeout(()=>{
-categorySelect.value = data.predicted_category;
-categorySelect.style.color="black";
-},3000);
-categorySelect.value="Đang dự đoán danh mục...."
-categorySelect.style.color="green";
-// Display the predicted category below the description input
-const predictedCategoryDiv = document.getElementById('predicted-category');
-predictedCategoryDiv.innerHTML = `Danh mục dự đoán: ${data.predicted_category}`;
-})
-.catch(error => {
-// Hide the loading indicator in case of an error
-document.getElementById('loading-indicator').style.display = 'none';
-});
-}
+            // Update the category select input with the predicted category
+            const categorySelect = document.getElementById('category-input');
+            setTimeout(() => {
+                categorySelect.value = data.predicted_category;
+                categorySelect.style.color = "black";
+            }, 3000);
+            categorySelect.value = "Đang dự đoán danh mục....";
+            categorySelect.style.color = "green";
+        })
+        .catch(error => {
+            // Hide the loading indicator in case of an error
+            document.getElementById('loading-indicator').style.display = 'none';
+        });
+    }
 }
 
 // Function to get the CSRF token from cookies
 function getCookie(name) {
-const value = `; ${document.cookie}`;
-const parts = value.split(`; ${name}=`);
-if (parts.length === 2) return parts.pop().split(';').shift();
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
 // Listen for input changes in the description field
 const descriptionInput = document.getElementById('description-input');
 descriptionInput.addEventListener('input', predictCategory);
 </script>
-
 {% endblock js %}

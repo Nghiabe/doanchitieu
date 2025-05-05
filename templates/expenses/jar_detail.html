@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center mb-4 text-primary">{{ jar.name }}</h2>
+
+    <div class="row">
+        <!-- Biểu đồ -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <canvas id="expenseChart" width="300" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng quan -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng quan hũ</h5>
+                    <p><strong>Ngân sách:</strong> <span class="text-success">{{ jar.total_budget }} đ</span></p>
+                    <p><strong>Đã chi:</strong> <span class="text-danger">{{ jar.current_spent }} đ</span></p>
+                    <p><strong>Còn lại:</strong> <span class="text-primary">{{ jar.remaining_budget }} đ</span></p>
+                    <p><strong>Thành viên:</strong> 
+                        {% for member in jar.members.all %}
+                            <span class="badge bg-info text-dark">{{ member.username }}</span>
+                        {% empty %}
+                            <span class="text-muted">Chỉ mình bạn</span>
+                        {% endfor %}
+                    </p>
+                    <a href="{% url 'edit_jar' jar.id %}" class="btn btn-sm btn-outline-warning">✏️ Sửa hũ</a>
+                    <a href="{% url 'delete_jar' jar.id %}" class="btn btn-sm btn-outline-danger">🗑️ Xóa hũ</a
+                    <a href="{% url 'share_jar' jar.id %}" class="btn btn-sm btn-outline-success">👥 Chia sẻ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Giao dịch -->
+    <h4 class="mt-4 mb-3">Giao dịch trong hũ</h4>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Hạng mục</th>
+                        <th>Số tiền</th>
+                        <th>Mô tả</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.date }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.amount }} đ</td>
+                        <td>{{ expense.description }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Chưa có giao dịch nào</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Đã dùng', 'Còn lại'],
+            datasets: [{
+                label: 'Chi tiêu',
+                data: [
+                    {{ jar.current_spent|default_if_none:0|floatformat:"0" }},
+                    {{ jar.remaining_budget|default_if_none:0|floatformat:"0" }}
+                ],
+                backgroundColor: ['#f87171', '#60a5fa'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = context.parsed;
+                            const percent = ((value / total) * 100).toFixed(1);
+                            return `${context.label}: ${value} đ (${percent}%)`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
