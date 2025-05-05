@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container p-5">
+    <h2>Thêm Mục Tiêu</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group mt-4">
+            <label for="{{ form.name.id_for_label }}">Tên Mục Tiêu</label>
+            {{ form.name }}
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="{{ form.start_date.id_for_label }}">Ngày Bắt Đầu</label>
+                <input type="date" class="form-control" name="start_date" />
+            </div>
+            <div class="form-group col-md-6">
+                <label for="{{ form.end_date.id_for_label }}">Ngày Kết Thúc</label>
+                <input type="date" class="form-control" name="end_date" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.amount_to_save.id_for_label }}">Số Tiền Cần Tiết Kiệm</label>
+            {{ form.amount_to_save }}
+        </div>
+        <button type="submit" class="btn btn-primary">Thêm Mục Tiêu</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'income' %}">Thu Nhập</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Thêm Thu Nhập</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-body">
+            <form action="{% url 'add-income' %}" method="post">
+                {% include 'partials/_messages.html' %}
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="amount">Số Tiền</label>
+                    <input type="number" class="form-control form-control-sm" id="amount" name="amount" value="{{ values.amount }}" step="0.01" required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Mô Tả</label>
+                    <input type="text" class="form-control form-control-sm" id="description" name="description" value="{{ values.description }}" required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="source">Nguồn Thu Nhập</label>
+                    <select class="form-control" id="source" name="source" required>
+                        {% for source in sources %}
+                        <option value="{{ source.name }}" {% if source.name == values.source %}selected{% endif %}>{{ source.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="income_date">Ngày Thu Nhập</label>
+                    <input type="date" class="form-control form-control-sm" id="income_date" name="income_date" value="{{ values.income_date }}" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm">Gửi</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

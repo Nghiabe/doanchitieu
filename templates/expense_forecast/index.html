@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+    {% include 'partials/_messages.html' %}
+    {% else %}
+    <h1 class="mt-4 mb-4">Dự báo Chi tiêu trong 30 Ngày tới</h1>
+
+    <!-- Hiển thị chi tiêu dự báo trong bảng phản hồi -->
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead style="background-color:#866ec7; color:white ;">
+                <tr>
+                    <th>Ngày</th>
+                    <th>Chi tiêu dự báo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in forecast_data %}
+                <tr>
+                    <td>{{ row.Date }}</td>
+                    <td>{{ row.Forecasted_Expenses }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Hiển thị tổng chi tiêu dự báo vào cuối 30 ngày -->
+    <h2 class="mt-4">Tổng chi tiêu dự báo vào cuối 30 ngày: <b>{{total_forecasted_expenses}} </b></h2>
+
+    <!-- Hiển thị tổng chi tiêu dự báo theo từng danh mục -->
+    <h2 class="mt-4 mb-3">Tổng chi tiêu dự báo theo từng danh mục:</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead style="background-color:#866ec7; color:white ;">
+                <tr>
+                    <th>Danh mục</th>
+                    <th>Tổng chi tiêu dự báo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category, expenses in category_forecasts.items %}
+                <tr>
+                    <td>{{ category }}</td>
+                    <td>{{ expenses }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Hiển thị đồ thị trong container phản hồi -->
+    <div class="mt-4">
+        <img src="{% static 'img/forecast_plot.png' %}" alt="Đồ thị Dự báo Chi tiêu" class="img-fluid">
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

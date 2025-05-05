@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block css %}
+<style>
+    .green {
+        color: green;
+    }
+
+    .red {
+        color: red;
+    }
+</style>
+{% endblock css %}
+{% block content %}
+<div class="container m-3">
+    <h1>Báo Cáo Thu Chi</h1>
+
+    <!-- Thông báo lỗi -->
+    {% if messages %}
+    <div class="alert alert-danger">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form chọn ngày -->
+    <form method="post" action="{% url 'generate-report' %}" class="mb-3">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="start_date">Từ ngày:</label>
+                <input type="date" name="start_date" class="form-control" required>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="end_date">Đến ngày:</label>
+                <input type="date" name="end_date" class="form-control" required>
+            </div>
+        </div>
+        <button type="submit" id="generate-report" class="btn btn-primary">Tạo báo cáo</button>
+    </form>
+
+    {% if incomes %}
+    <!-- Bảng Thu Nhập -->
+    <h2>Tổng Thu Nhập:</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ngày</th>
+                <th>Nguồn thu</th>
+                <th>Số tiền (₫)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for income in incomes %}
+            <tr>
+                <td>{{ income.date }}</td>
+                <td>{{ income.source }}</td>
+                <td>&#8363; {{ income.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if expenses %}
+    <!-- Bảng Chi Tiêu -->
+    <h2>Tổng Chi Tiêu:</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ngày</th>
+                <th>Danh mục</th>
+                <th>Số tiền (₫)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.date }}</td>
+                <td>{{ expense.category }}</td>
+                <td>&#8363; {{ expense.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if total_income is not None and total_expense is not None %}
+    <!-- Tính Toán Tiết Kiệm -->
+    <h2>Tiết Kiệm:</h2>
+    <p>Tổng thu nhập: &#8363; {{ total_income }}</p>
+    <p>Tổng chi tiêu: &#8363; {{ total_expense }}</p>
+    <p>Tổng tiết kiệm: &#8363;
+        {% if savings < 0 %} 0 {% else %} {{ savings }} {% endif %}
+    </p>
+
+    {% if savings > 0 %}
+    <p class="green">Bạn đã tiết kiệm được trong kỳ này.</p>
+    {% elif savings == 0 %}
+    <p class="green">Thu nhập và chi tiêu của bạn đã cân bằng.</p>
+    {% else %}
+    <p class="red">Chi tiêu của bạn đã vượt quá thu nhập trong kỳ này.</p>
+    {% endif %}
+    {% endif %}
+
+    <!-- Xuất báo cáo -->
+    <div>
+        {% if report_generated %}
+        <h2>Xuất Báo Cáo:</h2>
+        <a href="{% url 'export_pdf' %}?start_date={{ start_date }}&end_date={{ end_date }}"
+            class="btn btn-success">Xuất PDF</a>
+        <a href="{% url 'export_csv' %}?start_date={{ start_date }}&end_date={{ end_date }}"
+            class="btn btn-info">Xuất CSV</a>
+        <a href="{% url 'export_xlsx' %}?start_date={{ start_date }}&end_date={{ end_date }}"
+            class="btn btn-warning">Xuất Excel</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

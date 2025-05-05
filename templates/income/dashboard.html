@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+<!-- Font tùy chỉnh cho mẫu này-->
+{% block link %}
+<link href="{% static 'css/all.min.css' %}" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+<!-- Phong cách tùy chỉnh cho mẫu này-->
+<link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock link %}
+
+{% block content %}
+
+<body id="page-top">
+    <!-- Khung trang -->
+    <div id="wrapper">
+        <!-- Khung nội dung -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Nội dung chính -->
+            <div id="content">
+                <!-- Thanh điều hướng -->
+                <!-- Kết thúc thanh điều hướng -->
+
+                <!-- Bắt đầu nội dung trang -->
+                <div class="container-fluid">
+                    <!-- Tiêu đề trang -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Bảng điều khiển</h1>
+                        <a href="{% url 'report' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                            <i class="fas fa-download fa-sm text-white-50"></i> Tạo báo cáo
+                        </a>
+                    </div>
+
+                    <!-- Dòng nội dung -->
+                    <div class="row">
+                        <!-- Thẻ thu nhập (hằng ngày) -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Thu nhập (Hằng ngày)
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">&#8377; {{ daily_income }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thẻ thu nhập (hằng tuần) -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Thu nhập (Hằng tuần)
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">&#8377; {{ weekly_income }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thẻ thu nhập (hàng tháng) -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Thu nhập (Hàng tháng)
+                                            </div>
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">&#8377; {{ monthly_income }}</div>
+                                                </div>
+                                                <div class="col">
+                                                    <div class="progress progress-sm mr-2">
+                                                        <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thẻ thu nhập (hàng năm) -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Thu nhập (Hàng năm)
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">&#8377; {{ yearly_income }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dòng nội dung -->
+                    <div class="row justify-content-center">
+                        <!-- Biểu đồ khu vực -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <!-- Tiêu đề thẻ - Dropdown -->
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Tổng quan thu nhập</h6>
+                                </div>
+                                <!-- Thân thẻ -->
+                                <div class="card-body">
+                                    <div class="chart-area">
+                                        <canvas id="myAreaChart" data-url="{% url 'monthly_income_data' %}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Kết thúc nội dung trang -->
+            </div>
+            <!-- Kết thúc nội dung chính -->
+        </div>
+        <!-- Kết thúc khung nội dung -->
+    </div>
+    <!-- Kết thúc khung trang -->
+
+    <!-- Nút cuộn lên đầu trang-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Các tập lệnh -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/jquery.easing.min.js' %}"></script>
+    <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
+    <script src="{% static 'js/Chart.min.js' %}"></script>
+
+    <!-- Các tập lệnh tùy chỉnh cho tất cả các trang -->
+    <script src="{% static 'js/chart-area-demo.js' %}"></script>
+    <script src="{% static 'js/chart-pie-demo.js' %}"></script>
+
+    <!-- Lấy dữ liệu cho biểu đồ và cập nhật động -->
+    {% block js %}
+    var ctx = document.getElementById("myAreaChart");
+    var url = ctx.getAttribute('data-url'); // Lấy URL dữ liệu từ phần tử canvas
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            var monthlyIncomeData = data.monthly_income_data;
+            // Cập nhật biểu đồ với dữ liệu lấy được
+            myLineChart.data.datasets[0].data = monthlyIncomeData;
+            myLineChart.update();
+        })
+        .catch(error => console.error("Lỗi khi lấy dữ liệu:", error));
+    {% endblock js %}
+{% endblock content %}

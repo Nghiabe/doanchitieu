@@ -1,0 +1,68 @@
+{% load static %}
+<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+    <div class="sidebar-sticky">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    <span data-feather="home"></span>
+                    Bảng điều khiển <span class="sr-only">(hiện tại)</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'expenses' %}">
+                    Chi tiêu
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'income' %}">
+                    Thu nhập
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'forecast' %}">
+                    Dự báo chi tiêu
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Tổng quan</span>
+            <a class="d-flex align-items-center text-muted" href="#" aria-label="Thêm báo cáo mới">
+                <span data-feather="plus-circle"></span>
+            </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'stats' %}">
+                    Tổng quan chi tiêu
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <span data-feather="file-text"></span>
+                    Tổng quan thu nhập
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Cài đặt</span>
+            <a class="d-flex align-items-center text-muted" href="#" aria-label="Thêm báo cáo mới">
+                <span data-feather="plus-circle"></span>
+            </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'preferences' %}">
+                    Cài đặt chung
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <span data-feather="file-text"></span>
+                    Tài khoản
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

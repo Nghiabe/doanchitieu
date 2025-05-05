@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Thu Chi</title>
+    <style>
+        .logo {
+            font-weight: bolder;
+            color: green;
+            text-align: center;
+            font-size: x-large;
+        }
+
+        th {
+            text-align: left;
+        }
+
+        h2 {
+            text-decoration: underline;
+        }
+    </style>
+
+    <!-- Bootstrap CSS từ CDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="display-4 logo">ExpenseWise</h1>
+            <h1 class="display-4">Báo Cáo Thu Chi</h1>
+        </div>
+
+        {% if incomes %}
+        <!-- Bảng Thu Nhập -->
+        <h2>Chi Tiết Thu Nhập</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Nguồn thu</th>
+                    <th>Số tiền (VNĐ)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for income in incomes %}
+                <tr>
+                    <td>{{ income.date }}</td>
+                    <td>{{ income.source }}</td>
+                    <td>{{ income.amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if expenses %}
+        <!-- Bảng Chi Tiêu -->
+        <h2>Chi Tiết Chi Tiêu</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Danh mục</th>
+                    <th>Số tiền (VNĐ)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.date }}</td>
+                    <td>{{ expense.category }}</td>
+                    <td>{{ expense.amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if total_income is not None and total_expense is not None %}
+        <!-- Tính Toán Tổng Quan -->
+        <h2>Tổng Kết</h2>
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <td><strong>Tổng thu nhập:</strong></td>
+                    <td>{{ total_income }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Tổng chi tiêu:</strong></td>
+                    <td>{{ total_expense }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Tiết kiệm:</strong></td>
+                    <td>{{ savings }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Trạng thái:</strong></td>
+                    <td>
+                        {% if savings > 0 %}
+                        <p style="color: green;">Bạn đã tiết kiệm được trong kỳ này.</p>
+                        {% elif savings == 0 %}
+                        <p style="color: orange;">Bạn đã cân đối thu chi trong kỳ này.</p>
+                        {% else %}
+                        <p style="color: red;">Chi tiêu của bạn vượt quá thu nhập trong kỳ này.</p>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS từ CDN -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+
+</html>
