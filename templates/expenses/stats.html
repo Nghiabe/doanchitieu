@@ -3,12 +3,12 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
+    <div class="row align-items-center mb-3">
         <div class="col-md-10">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb bg-light px-3 py-2 rounded">
                     <li class="breadcrumb-item">
-                        <a href="">Tổng quan Chi tiêu</a>
+                        <a href="#">Tổng quan Chi tiêu</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page">
                         Tổng quan
@@ -16,23 +16,64 @@
                 </ol>
             </nav>
         </div>
-
-        <div class="col-md-2">
-            <a href="/" class="btn btn-primary">QUAY LẠI</a>
+        <div class="col-md-2 text-end">
+            <a href="/" class="btn btn-outline-primary">← Quay lại</a>
         </div>
-
     </div>
 
-    <div class="row m-5">
-        <div class="col-md-8 ">
-            <canvas id="myChart" width="300" height="300"></canvas>
-        </div>
-        <div class="col-md-4">
+    <div class="row g-4">
+        <!-- Biểu đồ tròn -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    Biểu đồ Chi tiêu theo danh mục
+                </div>
+                <div class="card-body">
+                    <canvas id="pieChart" height="280"></canvas>
+                </div>
+            </div>
         </div>
 
+        <!-- Biểu đồ cột -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    Biểu đồ Cột Chi tiêu
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng thống kê -->
+    <div class="row mt-5">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    Thống kê theo danh mục
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Danh mục</th>
+                                <th>Số tiền (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTableBody">
+                            <!-- Dữ liệu sẽ được thêm bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Gọi JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/stats.js' %}"></script>
-
-{% endblock content %}
+{% endblock %}

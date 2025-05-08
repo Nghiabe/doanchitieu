@@ -1,65 +1,88 @@
-const renderChart = (data, labels) => {
-  var ctx = document.getElementById("myChart").getContext("2d");
-  var myChart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "Last 6 months expenses",
-          data: data,
-          backgroundColor: [
-            "rgba(255, 99, 132, 0.2)",
-            "rgba(54, 162, 235, 0.2)",
-            "rgba(255, 206, 86, 0.2)",
-            "rgba(75, 192, 192, 0.2)",
-            "rgba(153, 102, 255, 0.2)",
-            "rgba(255, 159, 64, 0.2)",
-            "rgba(155, 201, 22, 0.2)",
-            "rgba(203, 44, 255, 0.2)",
-            "rgba(135, 55, 103, 0.2)",
-            "rgba(100, 234, 99, 0.2)",
-            "rgba(200, 231, 209, 0.2)",
-            "rgba(98, 200, 201, 0.2)",
-            "rgba(255, 205, 65, 0.2)",
-            "rgba(55, 66, 77, 0.2)",
-            "rgba(199, 166, 277, 0.2)",
-          ],
-          borderColor: [
-            "rgba(255, 99, 132, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255, 206, 86, 1)",
-            "rgba(75, 192, 192, 1)",
-            "rgba(153, 102, 255, 1)",
-            "rgba(255, 159, 64, 1)",
-          ],
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      title: {
-        display: true,
-        text: "Expenses per category",
-      },
-    },
-  });
-};
+document.addEventListener("DOMContentLoaded", function () {
+  // Lấy dữ liệu từ server
+  fetch('/expenses/expense_category_summary')
+      .then(response => response.json())
+      .then(data => {
+          const chartData = data.expense_category_data;
+          const labels = Object.keys(chartData);
+          const values = Object.values(chartData);
 
-const getChartData = () => {
-  console.log("fetching");
-  fetch("/expense_category_summary")
-    .then((res) => res.json())
-    .then((results) => {
-      console.log("results", results);
-      const category_data = results.expense_category_data;
-      const [labels, data] = [
-        Object.keys(category_data),
-        Object.values(category_data),
-      ];
+          // Biểu đồ tròn
+          const pieChartCanvas = document.getElementById("pieChart");
+          if (pieChartCanvas) {
+              new Chart(pieChartCanvas, {
+                  type: 'pie',
+                  data: {
+                      labels: labels,
+                      datasets: [{
+                          data: values,
+                          backgroundColor: [
+                              '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1'
+                          ]
+                      }]
+                  },
+                  options: {
+                      responsive: true,
+                      plugins: {
+                          tooltip: {
+                              callbacks: {
+                                  label: function(tooltipItem) {
+                                      return `${tooltipItem.label}: ${tooltipItem.raw.toLocaleString('vi-VN')} đ`;
+                                  }
+                              }
+                          }
+                      }
+                  }
+              });
+          }
 
-      renderChart(data, labels);
-    });
-};
+          // Biểu đồ cột
+          const barChartCanvas = document.getElementById("barChart");
+          if (barChartCanvas) {
+              new Chart(barChartCanvas, {
+                  type: 'bar',
+                  data: {
+                      labels: labels,
+                      datasets: [{
+                          label: 'Chi tiêu',
+                          data: values,
+                          backgroundColor: '#17a2b8'
+                      }]
+                  },
+                  options: {
+                      responsive: true,
+                      scales: {
+                          y: {
+                              beginAtZero: true,
+                              ticks: {
+                                  callback: function(value) {
+                                      return value.toLocaleString('vi-VN') + ' đ';
+                                  }
+                              }
+                          }
+                      }
+                  }
+              });
+          }
 
-document.onload = getChartData();
+          // Cập nhật bảng thống kê
+          const tableBody = document.getElementById('categoryTableBody');
+          tableBody.innerHTML = '';  // Xóa dữ liệu cũ
+          labels.forEach((label, index) => {
+              const row = `
+                  <tr>
+                      <td>${index + 1}</td>
+                      <td>${label}</td>
+                      <td>${values[index].toLocaleString('vi-VN')} đ</td>
+                  </tr>
+              `;
+              tableBody.innerHTML += row;
+          });
+      })
+      .catch(error => {
+          console.error("Error fetching data:", error);
+          // Hiển thị thông báo lỗi nếu không thể lấy dữ liệu
+          const tableBody = document.getElementById('categoryTableBody');
+          tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Không thể tải dữ liệu.</td></tr>';
+      });
+});

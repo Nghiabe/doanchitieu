@@ -1,61 +1,150 @@
 {% extends "base.html" %}
 {% block css %}
 <style>
+    :root {
+        --primary-color: #6c63ff;
+        --primary-dark: #574fd6;
+        --light-bg: #f9f8fc;
+        --success-bg: #e0f6f0;
+        --danger-bg: #fde8ec;
+        --success-text: #276749;
+        --danger-text: #842029;
+    }
+
     .container {
-        height: 100vh;
-        width: 80%;
+        max-width: 1000px;
         margin: auto;
+        padding: 30px 15px;
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+        background-color: var(--light-bg);
     }
 
-    .form {
-        height: 100%;
-        width: 50%;
-        padding: 20px;
-        margin: 5%;
-    }
-
-    .form1 {
-        height: 50%;
-        width: 50%;
-        padding: 20px;
-        margin: 5%;
-        margin-top: 15%;
+    .form-section, .source-section {
+        flex: 1 1 45%;
+        background-color: #fff;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(108, 99, 255, 0.08);
     }
 
     h3 {
-        padding: 20px;
+        margin-bottom: 25px;
+        font-weight: bold;
+        color: var(--primary-dark);
     }
 
-    .message {
-        margin-bottom: 30px;
+    .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .badge {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 0.9rem;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #444;
+    }
+
+    input[type="text"], input[type="submit"] {
+        width: 100%;
         padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+    }
+
+    input[type="submit"] {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .alert {
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+    }
+
+    .alert-success {
+        background-color: var(--success-bg);
+        color: var(--success-text);
+    }
+
+    .alert-danger {
+        background-color: var(--danger-bg);
+        color: var(--danger-text);
+    }
+
+    .error-text {
+        color: #e63946;
+        font-size: 0.9rem;
+    }
+
+    ul {
         padding-left: 0;
+        list-style: none;
     }
 
-    .label {
-        margin-right: 20px;
-        height: auto;
-        min-width: 100px;
-        display: inline-block;
-        margin: auto;
+    li.list {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+        padding: 12px 15px;
+        border-radius: 10px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+        transition: background-color 0.3s;
     }
 
-    .danger {
-        margin: 10px;
+    li.list:hover {
+        background-color: #f1f0fe;
     }
 
-    @media (max-width:850px) {
+    li.list i {
+        margin-right: 8px;
+        color: var(--primary-color);
+    }
+
+    li.list a {
+        color: #e63946;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    li.list a:hover {
+        text-decoration: underline;
+    }
+
+    .no-data {
+        color: #888;
+        font-style: italic;
+        padding: 10px;
+    }
+
+    @media (max-width: 768px) {
         .container {
-            display: block;
-        }
-
-        .form,
-        .form1 {
-            height: 65%;
-            width: 100%;
-            border: 2px solid red;
+            flex-direction: column;
         }
     }
 </style>
@@ -64,42 +153,56 @@
 {% block content %}
 <div class="container">
 
-    <form action="" class="form" method="post">
+    <div class="form-section">
         {% if messages %}
-        <div class="message">
-            {% for message in messages %}
-            <div {% if message.tags %} class="alert-{{message.tags}}" {% endif %}>{{message}}</div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
         </div>
+        {% endfor %}
         {% endif %}
 
-        <h3>Chào mừng {{request.user.username|capfirst}}!</h3>
+        <h3><i class="fas fa-user-circle me-2"></i>Chào mừng {{ request.user.username|capfirst }}!</h3>
 
-        {% csrf_token %}
-        <table>
+        <form action="" method="post">
+            {% csrf_token %}
             {% for fm in form %}
-            <p class="label">{{ fm.label_tag }}</p> {{ fm }} 
-            <span class="alert-danger danger">{{ fm.errors|striptags }}</span><br><br>
+                <div class="mb-3">
+                    <label>{{ fm.label_tag }}</label>
+                    {{ fm }}
+                    {% if fm.errors %}
+                        <div class="error-text">{{ fm.errors|striptags }}</div>
+                    {% endif %}
+                </div>
             {% endfor %}
-        </table>
-        <input type="submit" class="btn btn-primary" value="Cập nhật">
-    </form>
+            <input type="submit" value="Cập nhật">
+        </form>
+    </div>
 
-    <div class="form1">
+    <div class="source-section">
+        <div class="section-title">
+            <h3><i class="fas fa-wallet me-2"></i>Thu nhập</h3>
+            <span class="badge">{{ sources|length }} nguồn</span>
+        </div>
         <form action="{% url 'addSource' %}" method="POST">
             {% csrf_token %}
-            <div>Thêm nguồn thu nhập:</div>
-            <input type="text" placeholder="Nguồn thu nhập" name="Source">
-            <input type="submit" class="btn btn-primary m-2" value="Thêm">
+            <input type="text" name="Source" placeholder="Nhập tên nguồn thu nhập...">
+            <input type="submit" value="Thêm">
         </form>
 
-        <div>
-            {% for source in sources %}
-            <li class="list">{{ source }} 
-                <a href="{% url 'deleteSource' source.id %}">Xóa</a>
-            </li>
-            {% endfor %}
-        </div>
+        <ul>
+            {% if sources %}
+                {% for source in sources %}
+                <li class="list">
+                    <span><i class="fas fa-coins"></i>{{ source }}</span>
+                    <a href="{% url 'deleteSource' source.id %}">Xóa</a>
+                </li>
+                {% endfor %}
+            {% else %}
+                <div class="no-data">Chưa có nguồn thu nhập nào.</div>
+            {% endif %}
+        </ul>
     </div>
+
 </div>
 {% endblock content %}
