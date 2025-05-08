@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Personal Expense Tracker
 ![Expense Tracker UI](https://github.com/hemantshirsath/Expensetracker/assets/102463335/f31d97f4-4841-44cb-b2af-62286c60a0c9)
 ![forecast Expense UI ](https://github.com/hemantshirsath/Expensetracker/assets/102463335/c1188567-39c5-4cc1-8916-24f3d3712ee8)
@@ -120,3 +121,6 @@ If you'd like to contribute to this project, please follow these steps:
 - The automated expense categorization and prediction features are powered by machine learning models, which were trained using various open-source libraries and datasets.
 
 Feel free to customize and enhance this expense tracker according to your needs. Happy budgeting!
+=======
+# doanchitieu
+>>>>>>> 31bfa18b16011077f416e37acc0daf9693217164
