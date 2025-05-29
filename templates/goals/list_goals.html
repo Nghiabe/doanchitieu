@@ -11,8 +11,8 @@
         <h3>{{ goal.name }}</h3>
         <p><strong>Ngày Bắt Đầu:</strong> {{ goal.start_date }}</p>
         <p><strong>Ngày Kết Thúc:</strong> {{ goal.end_date }}</p>
-        <p><strong>Số Tiền Cần Tiết Kiệm:</strong> &#8377; {{ goal.amount_to_save }}</p>
-        <p><strong>Số Tiền Đã Tiết Kiệm:</strong> &#8377; {{ goal.current_saved_amount }}</p>
+        <p><strong>Số Tiền Cần Tiết Kiệm:</strong> ₫ {{ goal.amount_to_save }}</p>
+        <p><strong>Số Tiền Đã Tiết Kiệm:</strong> ₫ {{ goal.current_saved_amount }}</p>
 
         {% if goal.calculate_progress.saved_percentage > 0 %}
         <div class="progress" style="height: 20px;">
@@ -25,7 +25,7 @@
         <p>Tiến độ chưa có sẵn</p>
         {% endif %}
 
-        <p class="mt-2"><strong>Số Tiền Cần Tiết Kiệm Hàng Ngày:</strong> &#8377; {{ goal.calculate_progress.daily_savings_required }}</p>
+        <p class="mt-2"><strong>Số Tiền Cần Tiết Kiệm Hàng Ngày:</strong> ₫ {{ goal.calculate_progress.daily_savings_required }}</p>
 
         <form method="post" action="{% url 'add_amount' goal.id %}">
             {% csrf_token %}

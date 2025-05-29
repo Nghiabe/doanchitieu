@@ -134,6 +134,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Đảm bảo rằng đường dẫn tới thư mục static là chính xác
+]
+
 
 
 # Default primary key field type
@@ -156,3 +162,6 @@ DEFAULT_FROM_EMAIL = 'hemantshirsath24@gmail.com'
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# settings.py
+APPEND_SLASH = False
+

@@ -1,4 +1,4 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
@@ -25,7 +25,6 @@
     <div class="container">
         {% include 'partials/_messages.html' %}
         {% if expenses.count %}
-
         <div class="row">
             <div class="col-md-8"></div>
             <div class="col-md-4">
@@ -34,13 +33,14 @@
                 </div>
             </div>
         </div>
-        <div class="app-table">
 
+        <div class="app-table">
             <table class="table table-stripped table-hover">
                 <thead>
                     <tr>
-                        <th>Số tiền ({{currency}}) <a href="?sort=amount_asc">&#11014; </a> <a href="?sort=amount_desc">&#11015;</a> </th>
+                        <th>Số tiền  <a href="?sort=amount_asc">&#11014; </a> <a href="?sort=amount_desc">&#11015;</a> </th>
                         <th>Danh mục</th>
+                        <th>Hũ Chi Tiêu</th> <!-- Thêm cột Hũ Chi Tiêu -->
                         <th>Mô tả</th>
                         <th>Ngày <a href="?sort=date_asc">&#11014;</a>
                             <a href="?sort=date_desc">&#11015;</a>
@@ -54,14 +54,15 @@
                     <tr>
                         <td>{{expense.amount}}</td>
                         <td>{{expense.category}}</td>
+                        <td>{{ expense.jar.name }}</td>
                         <td>{{expense.description}}</td>
-                        <td>{{expense.date}}</td>
+                        <!-- Hiển thị ngày theo định dạng tiếng Việt -->
+                        <td>{{expense.date|date:"d/m/Y"}}</td>
 
                         <td>
                             <a href="{% url 'expense-edit' expense.id  %}" class="btn btn-primary btn-sm">Sửa</a>
                         </td>
                     </tr>
-
                     {% endfor %}
                 </tbody>
             </table>

@@ -2,7 +2,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-
+from decimal import Decimal
 from django.shortcuts import render, redirect,HttpResponseRedirect
 from .models import Source, UserIncome
 from django.core.paginator import Paginator
@@ -358,7 +358,7 @@ def generate_report(request):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         user = request.user
-        report_generated=True
+        report_generated = True
 
         if start_date > end_date:
             messages.error(request, "Start date cannot be greater than end date.")
@@ -373,6 +373,10 @@ def generate_report(request):
         total_income = incomes.aggregate(Sum('amount'))['amount__sum'] or 0
         total_expense = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
 
+        # Convert total_income to Decimal for consistent arithmetic operations
+        total_income = Decimal(total_income) if isinstance(total_income, float) else total_income
+        total_expense = Decimal(total_expense) if isinstance(total_expense, float) else total_expense
+
         savings = total_income - total_expense
         
         context = {
@@ -383,14 +387,12 @@ def generate_report(request):
             'savings': savings,
             'start_date': start_date,
             'end_date': end_date,
-            'report_generated':report_generated
+            'report_generated': report_generated
         }
 
         return render(request, 'income/report.html', context)
     else:
-        
         return render(request, 'income/report.html')
-
 def export_csv(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')

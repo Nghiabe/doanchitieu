@@ -1,139 +1,78 @@
-# from django.shortcuts import render
-# import numpy as np
-# import pandas as pd
-# from statsmodels.tsa.arima.model import ARIMA
-# import matplotlib.pyplot as plt
-# from django.utils.timezone import now
-# from expenses.models import Expense
-# from django.http import HttpResponse
-# from django.contrib import messages
-
-# # Fetch the data from the Expense model and create the forecast
-# def forecast(request):
-#     # Fetch the latest 30 expenses for the current user
-#     expenses = Expense.objects.filter(owner=request.user).order_by('-date')[:30]
-
-#     # Check if there are enough expenses for forecasting
-#     if len(expenses) < 10:
-#         messages.error(request, "Not enough expenses to make a forecast. Please add more expenses.")
-#         return render(request, 'expense_forecast/index.html')
-
-#     # Create a DataFrame from the expenses
-#     data = pd.DataFrame({'Date': [expense.date for expense in expenses], 'Expenses': [expense.amount for expense in expenses]})
-#     data.set_index('Date', inplace=True)
-
-#     # Fit ARIMA model
-#     model = ARIMA(data['Expenses'], order=(5, 1, 0))
-#     model_fit = model.fit()
-
-#     # Forecast next 30 days of expenses starting from the next day
-#     forecast_steps = 30
-#     current_date = now().date()
-#     next_day = current_date + pd.DateOffset(days=1)
-#     forecast_index = pd.date_range(start=next_day, periods=forecast_steps, freq='D')
-
-#     # Predict the future expenses
-#     forecast = model_fit.forecast(steps=forecast_steps)
-
-#     # Create a DataFrame for the forecasted expenses
-#     forecast_data = pd.DataFrame({'Date': forecast_index, 'Forecasted_Expenses': forecast})
-    
-#     # Convert the forecast data to a list of dictionaries
-#     forecast_data_list = forecast_data.reset_index().to_dict(orient='records')
-
-#     # Create a plot but save it without displaying it
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(data, label='Previous Expenses')
-#     plt.plot(forecast_index, forecast, label='Forecasted Expenses', color='red')
-#     plt.xlabel('Date')
-#     plt.ylabel('Expenses')
-#     plt.title('Expense Forecast for Next 30 Days')
-#     plt.legend()
-
-#     # Save the plot to a file without displaying it
-#     plot_file = 'static/img/forecast_plot.png'
-#     plt.savefig(plot_file)
-#     plt.close()
-
-#     # Pass the data to the template
-#     context = {
-#         'forecast_data': forecast_data_list,
-#         'plot_file': plot_file,
-#         'total_forecasted_expenses': np.sum(forecast),
-#     }
-
-#     return render(request, 'expense_forecast/index.html', context)
-
 from django.shortcuts import render
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
+from datetime import datetime
 from django.utils.timezone import now
-from expenses.models import Expense
-from django.http import HttpResponse
 from django.contrib import messages
+from django.conf import settings
 import matplotlib.pyplot as plt
-from django.contrib.auth.decorators import login_required
+from expenses.models import Expense
 
-
-# Fetch the data from the Expense model and create the forecast
-@login_required(login_url='/authentication/login')
 def forecast(request):
-    # Fetch the latest 30 expenses for the current user
     expenses = Expense.objects.filter(owner=request.user).order_by('-date')[:30]
 
-    # Check if there are enough expenses for forecasting
     if len(expenses) < 10:
         messages.error(request, "Not enough expenses to make a forecast. Please add more expenses.")
         return render(request, 'expense_forecast/index.html')
 
-    # Create a DataFrame from the expenses
-    data = pd.DataFrame({'Date': [expense.date for expense in expenses], 'Expenses': [expense.amount for expense in expenses], 'Category': [expense.category for expense in expenses]})
-    data.set_index('Date', inplace=True)
+    data = pd.DataFrame(list(expenses.values('date', 'amount', 'category')))
+    data.set_index('date', inplace=True)
 
-    # Fit ARIMA model
-    model = ARIMA(data['Expenses'], order=(5, 1, 0))
-    model_fit = model.fit()
+    # Clean the data to make sure 'amount' and 'category' are valid
+    data['category'] = data['category'].astype(str)
+    data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to numeric, invalid will be NaN
+    data = data.dropna(subset=['category', 'amount'])
 
-    # Forecast next 30 days of expenses starting from the next day
-    forecast_steps = 30
-    current_date = now().date()
-    next_day = current_date + pd.DateOffset(days=1)
-    forecast_index = pd.date_range(start=next_day, periods=forecast_steps, freq='D')
+    if data.empty:
+        messages.error(request, "No valid data available for forecasting.")
+        return render(request, 'expense_forecast/index.html')
 
-    # Predict the future expenses
-    forecast = model_fit.forecast(steps=forecast_steps)
+    # Grouping data by category
+    try:
+        category_forecasts = data.groupby('category')['amount'].sum().to_dict()
+    except Exception as e:
+        messages.error(request, f"Error in grouping data: {e}")
+        return render(request, 'expense_forecast/index.html')
 
-    # Create a DataFrame for the forecasted expenses
-    forecast_data = pd.DataFrame({'Date': forecast_index, 'Forecasted_Expenses': forecast})
-    
-    # Convert the forecast data to a list of dictionaries
+    # Fit ARIMA model and forecast
+    try:
+        model = ARIMA(data['amount'], order=(5, 1, 0))  
+        model_fit = model.fit()
+        forecast = model_fit.forecast(steps=30)
+    except Exception as e:
+        messages.error(request, f"An error occurred while fitting the ARIMA model: {str(e)}")
+        return render(request, 'expense_forecast/index.html')
+
+    # Prepare forecast data
+    forecast_data = pd.DataFrame({'Date': pd.date_range(start=now().date() + pd.DateOffset(1), periods=30, freq='D'), 'Forecasted_Expenses': forecast})
     forecast_data_list = forecast_data.reset_index().to_dict(orient='records')
-
-    # Calculate total forecasted expenses
+    
     total_forecasted_expenses = np.sum(forecast)
 
-    # Calculate total forecasted expenses per category
-    category_forecasts = data.groupby('Category')['Expenses'].sum().to_dict()
+    # Plotting the forecast
+    try:
+        plt.figure(figsize=(10, 6))
+        plt.plot(data.index, data['amount'], label='Chi tiêu thực tế', color='blue')
+        plt.plot(forecast_data['Date'], forecast, label='Chi tiêu dự báo', color='red')
+        plt.xlabel('Ngày')  # Đổi tên trục X thành "Ngày"
+        plt.ylabel('Chi tiêu (VNĐ)')  # Đổi tên trục Y thành "Chi tiêu (VNĐ)"
+        plt.title('Dự báo Chi tiêu trong 30 Ngày tới')  # Đổi tiêu đề đồ thị
+        plt.legend(title="Dữ liệu", labels=['Chi tiêu thực tế', 'Chi tiêu dự báo'])
 
-    # Create a plot but save it without displaying it
-    plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data['Expenses'], label='Previous Expenses')
-    plt.plot(forecast_index, forecast, label='Forecasted Expenses', color='red')
-    plt.xlabel('Date')
-    plt.ylabel('Expenses')
-    plt.title('Expense Forecast for Next 30 Days')
-    plt.legend()
+        # Save plot to static/img folder
+        plot_file = 'img/forecast_plot.png'
+        plt.savefig(f'{settings.BASE_DIR}/static/{plot_file}')
+        plt.close()
+    except Exception as e:
+        messages.error(request, f"An error occurred while creating the plot: {str(e)}")
+        return render(request, 'expense_forecast/index.html')
 
-    # Save the plot to a file without displaying it
-    plot_file = 'static/img/forecast_plot.png'
-    plt.savefig(plot_file)
-    plt.close()
-    # Pass the data to the template
+    # Pass the plot and other variables to the template
     context = {
         'forecast_data': forecast_data_list,
         'total_forecasted_expenses': total_forecasted_expenses,
         'category_forecasts': category_forecasts,
+        'plot_file': plot_file,  # Pass the path of the plot
     }
-
     return render(request, 'expense_forecast/index.html', context)

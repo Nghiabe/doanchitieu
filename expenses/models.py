@@ -9,7 +9,7 @@ class ExpenseJar(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_jars')
     members = models.ManyToManyField(User, related_name='shared_jars', blank=True)
     total_budget = models.DecimalField(max_digits=12, decimal_places=2)
-    current_spent = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    current_spent = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0))
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -30,6 +30,7 @@ class Expense(models.Model):
     jar = models.ForeignKey(ExpenseJar, on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        # Kiểm tra xem đây là chi tiêu mới hay chỉnh sửa
         is_new = self.pk is None
         old_amount = Decimal(0)  # Đảm bảo giá trị là Decimal
         old_jar = None
@@ -39,20 +40,24 @@ class Expense(models.Model):
             old_amount = old_expense.amount
             old_jar = old_expense.jar
 
+        # Lưu chi tiêu mới hoặc chỉnh sửa
         super().save(*args, **kwargs)
 
+        # Nếu có hũ chi tiêu, cập nhật số tiền đã chi trong hũ
         if self.jar:
-            # Cập nhật current_spent của hũ chi tiêu
             if is_new:
-                self.jar.current_spent += self.amount
+                self.jar.current_spent += self.amount  # Cộng số tiền chi vào hũ mới
             else:
                 if old_jar == self.jar:
+                    # Nếu hũ chi tiêu không thay đổi, chỉ cần điều chỉnh số tiền chi
                     diff = self.amount - old_amount
                     self.jar.current_spent += diff
                 else:
+                    # Nếu hũ chi tiêu thay đổi, trừ đi số tiền cũ trong hũ cũ
                     if old_jar:
                         old_jar.current_spent -= old_amount
                         old_jar.save()
+                    # Cộng thêm số tiền chi vào hũ mới
                     self.jar.current_spent += self.amount
             self.jar.save()
 

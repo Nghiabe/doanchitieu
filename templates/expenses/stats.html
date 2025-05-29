@@ -33,6 +33,8 @@
                 </div>
             </div>
         </div>
+<a href="{% url 'check-image-creation' %}">Click để kiểm tra tạo tệp</a>
+
 
         <!-- Biểu đồ cột -->
         <div class="col-md-6">
@@ -46,7 +48,9 @@
             </div>
         </div>
     </div>
-
+{% if bar_plot_file %}
+  <img src="{% static 'img/'|add:bar_plot_file %}" alt="Biểu đồ chi tiêu theo hũ">
+{% endif %}
     <!-- Bảng thống kê -->
     <div class="row mt-5">
         <div class="col">

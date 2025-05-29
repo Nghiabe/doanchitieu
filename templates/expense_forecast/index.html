@@ -1,61 +1,115 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
+
 <div class="container mt-4">
     {% if messages %}
-    {% include 'partials/_messages.html' %}
+        {% include 'partials/_messages.html' %}
     {% else %}
-    <h1 class="mt-4 mb-4">Dự báo Chi tiêu trong 30 Ngày tới</h1>
+        <h1 class="mt-4 mb-4 text-center text-primary font-weight-bold">Dự báo Chi tiêu trong 30 Ngày tới</h1>
 
-    <!-- Hiển thị chi tiêu dự báo trong bảng phản hồi -->
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead style="background-color:#866ec7; color:white ;">
-                <tr>
-                    <th>Ngày</th>
-                    <th>Chi tiêu dự báo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in forecast_data %}
-                <tr>
-                    <td>{{ row.Date }}</td>
-                    <td>{{ row.Forecasted_Expenses }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Hiển thị chi tiêu dự báo trong bảng -->
+        {% if forecast_data %}
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="bg-info text-white">
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Chi tiêu dự báo (VNĐ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in forecast_data %}
+                    <tr class="hoverable-row">
+                        <td class="text-center">{{ row.Date|date:"d-m-Y" }}</td>
+                        <td class="text-center">{{ row.Forecasted_Expenses|addcommas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="alert alert-warning text-center">Không có dữ liệu chi tiêu dự báo.</p>
+        {% endif %}
+
+        <!-- Hiển thị tổng chi tiêu dự báo vào cuối 30 ngày -->
+        {% if total_forecasted_expenses %}
+        <h2 class="mt-4 text-center text-success font-weight-bold">
+            Tổng chi tiêu dự báo vào cuối 30 ngày: 
+            <b>{{ total_forecasted_expenses|addcommas }}</b>
+        </h2>
+        {% endif %}
+
+        <!-- Hiển thị tổng chi tiêu dự báo theo từng danh mục -->
+        {% if category_forecasts %}
+        <h2 class="mt-4 mb-3 text-center text-info font-weight-bold">Tổng chi tiêu dự báo theo từng danh mục:</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="bg-info text-white">
+                    <tr>
+                        <th>Danh mục</th>
+                        <th>Tổng chi tiêu dự báo (VNĐ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category, expenses in category_forecasts.items %}
+                    <tr class="hoverable-row">
+                        <td class="text-center">{{ category }}</td>
+                        <td class="text-center">{{ expenses|addcommas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Hiển thị đồ thị -->
+        {% if plot_file %}
+    <div class="mt-4 text-center">
+        <img src="{% static plot_file %}" alt="Đồ thị Dự báo Chi tiêu" class="img-fluid rounded" style="max-width: 90%; height: auto;">
     </div>
+{% else %}
+    <p class="alert alert-warning text-center">Không có đồ thị dự báo chi tiêu.</p>
+{% endif %}
 
-    <!-- Hiển thị tổng chi tiêu dự báo vào cuối 30 ngày -->
-    <h2 class="mt-4">Tổng chi tiêu dự báo vào cuối 30 ngày: <b>{{total_forecasted_expenses}} </b></h2>
-
-    <!-- Hiển thị tổng chi tiêu dự báo theo từng danh mục -->
-    <h2 class="mt-4 mb-3">Tổng chi tiêu dự báo theo từng danh mục:</h2>
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead style="background-color:#866ec7; color:white ;">
-                <tr>
-                    <th>Danh mục</th>
-                    <th>Tổng chi tiêu dự báo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for category, expenses in category_forecasts.items %}
-                <tr>
-                    <td>{{ category }}</td>
-                    <td>{{ expenses }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Hiển thị đồ thị trong container phản hồi -->
-    <div class="mt-4">
-        <img src="{% static 'img/forecast_plot.png' %}" alt="Đồ thị Dự báo Chi tiêu" class="img-fluid">
-    </div>
     {% endif %}
 </div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .hoverable-row:hover {
+        background-color: #f1f1f1;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .text-info {
+        color: #17a2b8 !important;
+    }
+
+    .font-weight-bold {
+        font-weight: 700;
+    }
+
+    .bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .table th, .table td {
+        text-align: center;
+        padding: 15px;
+    }
+</style>
+
 {% endblock content %}

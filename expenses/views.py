@@ -33,6 +33,18 @@ from .models import Expense
 from django.core.mail import send_mail
 from django.conf import settings
 from .form import ExpenseJarForm
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from django.shortcuts import render
+from django.contrib import messages
+from django.conf import settings
+from .models import Expense, ExpenseJar
+import pandas as pd
+from django.http import HttpResponse
+
+
+
 
 data = pd.read_csv('dataset.csv')
 
@@ -71,36 +83,45 @@ def index(request):
     categories = Category.objects.all()
     expenses = Expense.objects.filter(owner=request.user)
 
+    # Lấy giá trị sắp xếp từ GET
     sort_order = request.GET.get('sort')
 
+    # Điều chỉnh thứ tự sắp xếp
     if sort_order == 'amount_asc':
-        expenses = expenses.order_by('amount')
+        expenses = expenses.order_by('amount')  # Sắp xếp theo số tiền tăng dần
     elif sort_order == 'amount_desc':
-        expenses = expenses.order_by('-amount')
+        expenses = expenses.order_by('-amount')  # Sắp xếp theo số tiền giảm dần
     elif sort_order == 'date_asc':
-        expenses = expenses.order_by('date')
+        expenses = expenses.order_by('date')  # Sắp xếp theo ngày tăng dần
     elif sort_order == 'date_desc':
+        expenses = expenses.order_by('-date')  # Sắp xếp theo ngày giảm dần (mới nhất lên đầu)
+    else:
+        # Nếu không có tham số sắp xếp, mặc định sắp xếp theo ngày giảm dần
         expenses = expenses.order_by('-date')
 
+    # Phân trang (hiển thị 5 chi phí mỗi trang)
     paginator = Paginator(expenses, 5)
     page_number = request.GET.get('page')
-    page_obj = Paginator.get_page(paginator, page_number)
+    page_obj = paginator.get_page(page_number)
+
+    # Lấy thông tin đơn vị tiền tệ người dùng chọn
     try:
         currency = UserPreference.objects.get(user=request.user).currency
-    except:
-        currency=None
+    except UserPreference.DoesNotExist:
+        currency = None
 
-    total = page_obj.paginator.num_pages
+    # Tổng số trang
+    total_pages = page_obj.paginator.num_pages
+
     context = {
         'expenses': expenses,
         'page_obj': page_obj,
         'currency': currency,
-        'total': total,
+        'total': total_pages,
         'sort_order': sort_order,
-
     }
-    return render(request, 'expenses/index.html', context)
 
+    return render(request, 'expenses/index.html', context)
 daily_expense_amounts = {}
 
 @login_required(login_url='/authentication/login')
@@ -160,11 +181,6 @@ def add_expense(request):
 
             total_expenses_today = get_expense_of_day(user) + Decimal(amount)
             if total_expenses_today > daily_expense_limit:
-                subject = 'Daily Expense Limit Exceeded'
-                message = f'Hello {user.username},\n\nYour expenses for today have exceeded your daily expense limit. Please review your expenses.'
-                from_email = settings.EMAIL_HOST_USER
-                to_email = [user.email]
-                send_mail(subject, message, from_email, to_email, fail_silently=False)
                 messages.warning(request, 'Your expenses for today exceed your daily expense limit')
 
             # Tạo chi tiêu mới và gán cho hũ chi tiêu nếu có
@@ -259,36 +275,121 @@ def delete_expense(request, id):
     return redirect('expenses')
 
 @login_required(login_url='/authentication/login')
+@login_required
 def expense_category_summary(request):
     todays_date = datetime.date.today()
-    six_months_ago = todays_date-datetime.timedelta(days=30*6)
+    six_months_ago = todays_date - datetime.timedelta(days=30*6)
     expenses = Expense.objects.filter(owner=request.user,
                                       date__gte=six_months_ago, date__lte=todays_date)
     finalrep = {}
 
     def get_category(expense):
         return expense.category
+    
     category_list = list(set(map(get_category, expenses)))
 
     def get_expense_category_amount(category):
         amount = 0
         filtered_by_category = expenses.filter(category=category)
-
         for item in filtered_by_category:
             amount += item.amount
         return amount
 
-    for x in expenses:
-        for y in category_list:
-            finalrep[y] = get_expense_category_amount(y)
+    for category in category_list:
+        finalrep[category] = get_expense_category_amount(category)
 
     return JsonResponse({'expense_category_data': finalrep}, safe=False)
+@login_required(login_url='/authentication/login')
 
+
+
+@login_required(login_url='/authentication/login')
+@login_required(login_url='/authentication/login')
 @login_required(login_url='/authentication/login')
 def stats_view(request):
-    return render(request, 'expenses/stats.html')
+    try:
+        # Fetching the expenses data for the logged-in user
+        expenses = Expense.objects.filter(owner=request.user).order_by('date')
+        if not expenses.exists():
+            messages.error(request, "No expenses found for the logged-in user.")
+            return render(request, 'expenses/stats.html')
 
-@login_required(login_url='/authentication/login')
+        data = pd.DataFrame(list(expenses.values('date', 'amount', 'category')))
+        
+        # Converting 'date' to datetime and setting it as index
+        data['date'] = pd.to_datetime(data['date'], errors='coerce')
+        data.dropna(subset=['date'], inplace=True)  # Remove rows where date conversion failed
+        data.set_index('date', inplace=True)
+
+        # 1. Pie chart for expenses by category
+        category_expenses = data.groupby('category')['amount'].sum()
+        if category_expenses.empty:
+            raise ValueError("No valid category data to plot pie chart.")
+
+        plt.figure(figsize=(8, 6))
+        category_expenses.plot(kind='pie', autopct='%1.1f%%', startangle=90, legend=False)
+        plt.title('Chi tiêu theo danh mục')
+        pie_plot_filename = 'category_expenses_pie_chart.png'
+        pie_plot_path = os.path.join(settings.BASE_DIR, 'static', 'img', pie_plot_filename)
+        plt.savefig(pie_plot_path)
+        plt.close()
+
+        # 2. Bar chart for total expenses by jar (if expense jars are used)
+        jars_expenses = ExpenseJar.objects.filter(owner=request.user)
+        jar_data = {jar.name: jar.current_spent for jar in jars_expenses}
+
+        if not jar_data:
+            raise ValueError("No data available for 'Expense Jars' to plot bar chart.")
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(jar_data.keys(), jar_data.values(), color='skyblue')
+        plt.title('Chi tiêu theo Hũ')
+        plt.xlabel('Hũ Chi tiêu')
+        plt.ylabel('Số tiền (VNĐ)')
+        bar_plot_filename = 'jar_expenses_bar_chart.png'
+        bar_plot_path = os.path.join(settings.BASE_DIR, 'static', 'img', bar_plot_filename)
+        plt.savefig(bar_plot_path)
+        plt.close()
+
+        # 3. Line chart for expenses over time
+        total_expenses_over_time = data['amount'].resample('D').sum()
+
+        if total_expenses_over_time.empty:
+            raise ValueError("No valid data for plotting expenses over time.")
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(total_expenses_over_time, label='Chi tiêu theo ngày', color='green')
+        plt.title('Chi tiêu theo ngày')
+        plt.xlabel('Ngày')
+        plt.ylabel('Số tiền (VNĐ)')
+        line_plot_filename = 'daily_expenses_line_chart.png'
+        line_plot_path = os.path.join(settings.BASE_DIR, 'static', 'img', line_plot_filename)
+        plt.savefig(line_plot_path)
+        plt.close()
+
+        # Passing plot filenames and data to the template
+        context = {
+            'pie_plot_file': pie_plot_filename,
+            'bar_plot_file': bar_plot_filename,
+            'line_plot_file': line_plot_filename,
+            'category_expenses': category_expenses.to_dict(),  # Data for category summary
+            'total_expenses': data['amount'].sum(),
+        }
+
+        return render(request, 'expenses/stats.html', context)
+
+    except ValueError as ve:
+        # Specific exception handling for ValueError
+        messages.error(request, f"Error: {str(ve)}")
+        print(f"ValueError occurred: {str(ve)}")  # In error to console
+        return render(request, 'expenses/stats.html')
+    
+    except Exception as e:
+        # General exception handling
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+        print(f"Unexpected error: {str(e)}")  # In error to console
+        return render(request, 'expenses/stats.html')
+
 def predict_category(description):
     predict_category_url = 'http://localhost:8000/api/predict-category/'  # Use the correct URL path
     data = {'description': description}
@@ -404,3 +505,46 @@ def delete_jar(request, jar_id):
         return redirect('jars')  # Sau khi xóa, quay về trang danh sách hũ chi tiêu
 
     return render(request, 'expenses/confirm_delete_jar.html', {'jar': jar})
+def generate_report(request):
+    # Thực hiện logic để tạo báo cáo ở đây, ví dụ:
+    data = {'some_data': 'value'}  # Đưa vào dữ liệu bạn muốn
+    html_content = render_to_string('expenses/report_template.html', data)  # Lấy template HTML cho báo cáo
+    
+    # Tạo file PDF (ví dụ dùng WeasyPrint để tạo PDF từ HTML)
+    pdf = HTML(string=html_content).write_pdf()
+
+    # Trả về file PDF cho người dùng
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    return response
+def check_image_creation(request):
+    try:
+        # Đường dẫn lưu file ảnh trong thư mục static
+        image_path = os.path.join(settings.BASE_DIR, 'static', 'test_image.png')
+        
+        # Tạo một bức ảnh đơn giản với matplotlib
+        plt.figure(figsize=(6, 6))
+        plt.pie([20, 30, 50], labels=['A', 'B', 'C'], autopct='%1.1f%%', startangle=90)
+        plt.title('Test Pie Chart')
+        
+        # Lưu ảnh vào thư mục static
+        plt.savefig(image_path)
+        plt.close()  # Đóng cửa sổ hình ảnh để giải phóng tài nguyên
+        
+        # Trả về thông báo thành công
+        return HttpResponse(f"Tệp ảnh đã được tạo thành công tại: {image_path}")
+    
+    except Exception as e:
+        # Trả về thông báo lỗi nếu có vấn đề
+        return HttpResponse(f"Đã xảy ra lỗi khi tạo ảnh: {str(e)}")
+    try:
+        test_file_path = os.path.join(settings.BASE_DIR, 'static', 'test_file.txt')
+        
+        # Tạo file thử nghiệm
+        with open(test_file_path, 'w') as f:
+            f.write("This is a test file.")
+        
+        return HttpResponse(f"Tệp thử nghiệm đã được tạo thành công tại: {test_file_path}")
+    
+    except Exception as e:
+        return HttpResponse(f"Đã xảy ra lỗi: {str(e)}")
